@@ -333,6 +333,27 @@ try {
 
 In ARM64, you don't have to worry about the alignment of the instructions as all the instructions are 4 bytes aligned.
 
+### Frida >= 17 workaround
+
+```javascript
+Process.attachModuleObserver({
+    onAdded: function(module) {
+        if (module.name === "libfrida0xb.so") {
+            console.log(`Found libfrida0xb.so at: ${module.base}`);
+            const targetAddress = module.base.add(0x15248);
+
+            Memory.patchCode(targetAddress, 4, (code) => {
+                const cw = new Arm64Writer(code, { pc: targetAddress });
+                cw.putNop();
+                cw.flush();
+                console.log(`Instruction at ${targetAddress} successfully patched with NOP!`);
+            });
+        }
+    },
+    onRemoved: function(module) {}
+});
+```
+
 Okay, now let's run this script and see what happens.
 
 ![](images/26.png)

@@ -166,7 +166,29 @@ var get_flag_ptr = new NativePointer(adr);
 const get_flag = new NativeFunction(get_flag_ptr, 'void', ['int', 'int']);
 get_flag(1,2);
 ```
+### Frida >= 17 workaround
 
+```javascript
+Process.attachModuleObserver({
+    onAdded: function(module) {
+        if (module.name === "libfrida0xa.so") {
+            console.log("libfrida0xa.so found at: " + module.base);
+            var offset = 0x1dd60; 
+            var getFlagAddr = module.base.add(offset);
+
+            if (getFlagAddr) {
+                console.log("Success! Function address: " + getFlagAddr);
+                var get_flag = new NativeFunction(getFlagAddr, 'void', ['int', 'int']);
+                get_flag(1, 2);                
+                console.log("Done. Check Logcat for the 'Decrypted Flag' message.");
+            } else {
+                console.log("Failed to locate the function.");
+            }
+        }
+    },
+    onRemoved: function(module) {}
+});
+```
 Let's run frida and try this script.
 
 ![](images/14.png)
