@@ -422,6 +422,29 @@ Interceptor.attach(strcmp_adr, {
 
 ```
 
+### Frida >= 17 workaround
+
+
+```javascript
+Process.attachModuleObserver({
+    onAdded: function (module) {
+        if (module.name === "libfrida0x8.so") {
+            var strcmp_adr = module.getExportByName("strcmp");
+            Interceptor.attach(strcmp_adr, {
+                onEnter: function (args) {
+                    if (args[0].isNull() || args[1].isNull()) return;
+                    var str1 = args[0].readCString();
+                    var str2 = args[1].readCString();
+                    if (str1 === "Hello") {
+                        console.log(" Our Input: " + str1 + "  Secret: " + str2);
+                    }
+                }
+            });
+        }
+    },
+    onRemoved: function (module) {}
+});
+```
 Let's run it.
 
 ![](images/27.png)

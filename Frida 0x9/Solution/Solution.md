@@ -84,6 +84,28 @@ Interceptor.attach(check_flag, {
     }
 });
 ```
+### Frida >= 17 workaround
+
+```javascript
+Process.attachModuleObserver({
+    onAdded: function(module) {
+        if (module.name === "liba0x9.so") {
+            var checkFlagAddr = module.getExportByName("Java_com_ad2001_a0x9_MainActivity_check_1flag");
+            if (checkFlagAddr) {
+                Interceptor.attach(checkFlagAddr, {
+                    onEnter: function(args) {
+                        console.log(" check_flag is being called!");
+                    },
+                    onLeave: function(returnValue) {
+                        returnValue.replace(1337); 
+                    }
+                });
+            }
+        }
+    },
+    onRemoved: function(module) {}
+});
+```
 
 Let's run this script and see what happens.
 
